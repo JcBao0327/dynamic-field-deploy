@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  backend:
+    image: ghcr.io/JcBao0327/dynamic-field-backend:main
+    container_name: dfbd-backend
+    restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: "1"
+    # 如需数据/模型卷，取消注释并改路径
+    # volumes:
+    #  - /home/cs88/data:/data
+    #  - /home/cs88/model:/app/ckpt
+    # 如果需要 GPU 再开启
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: ["gpu"]
+
+  frontend:
+    image: ghcr.io/JcBao0327/dynamic-field-frontend:main
+    container_name: dfbd-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

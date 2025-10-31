@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  packages: write   # 关键：允许推送到 GHCR
+  packages: write
 
 jobs:
   build-and-push:
@@ -25,6 +25,10 @@ jobs:
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
 
+      # ⭐ 关键：把仓库 owner 变成小写写入环境变量
+      - name: Set lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Build & Push image
         uses: docker/build-push-action@v5
         with:
@@ -32,5 +36,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/dfbd-app:main
-            ghcr.io/${{ github.repository_owner }}/dfbd-app:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LC }}/dfbd-app:main
+            ghcr.io/${{ env.OWNER_LC }}/dfbd-app:${{ github.sha }}

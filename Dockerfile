@@ -1,34 +1,21 @@
-# ============================
-# Stage 1 — Build Frontend
-# ============================
-FROM node:20-alpine AS frontend-build
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci
-COPY frontend/ ./
-RUN npm run build   # 生成 dist/
+# ✅ 使用官方 Python 镜像
+FROM python:3.10-slim
 
-# ============================
-# Stage 2 — Backend + Serve
-# ============================
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
-
+# ✅ 设置工作路径
 WORKDIR /app
 
-# 拷贝后端并安装依赖
-COPY backend/ /app/backend/
-RUN python -m pip install --upgrade pip && \
-    pip install --no-cache-dir -r /app/backend/requirements.txt && \
-    pip install --no-cache-dir uvicorn fastapi
+# ✅ 只 copy 依赖，先安装，利用缓存加速
+COPY backend/requirements.txt /app/backend/requirements.txt
 
-# 拷贝前端打包产物到 backend/frontend/dist
-COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
+# ✅ 安装依赖（避免 pip6 与某些包不兼容）
+RUN python -m pip install --upgrade pip==23.3.1 && \
+    pip install --no-cache-dir -r /app/backend/requirements.txt
 
-# 入口：运行我们刚创建的 entrypoint.py（统一服务前后端）
-EXPOSE 80
-WORKDIR /app/backend
-CMD ["python", "-m", "uvicorn", "entrypoint:app", "--host", "0.0.0.0", "--port", "80"]
+# ✅ 再拷贝整体代码
+COPY backend /app/backend
+
+# ✅ 对外暴露端口
+EXPOSE 8000
+
+# ✅ 启动 FastAPI（按你项目命名修改）
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,21 +1,22 @@
-# ✅ 使用官方 Python 镜像
-FROM python:3.10-slim
-
-# ✅ 设置工作路径
+FROM python:3.11-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 
-# ✅ 只 copy 依赖，先安装，利用缓存加速
-COPY backend/requirements.txt /app/backend/requirements.txt
+# 常用构建工具
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-# ✅ 安装依赖（避免 pip6 与某些包不兼容）
-RUN python -m pip install --upgrade pip==23.3.1 && \
-    pip install --no-cache-dir -r /app/backend/requirements.txt
+# 仅拷 requirements 以利用缓存
+COPY backend/requirements.txt /app/requirements.txt
 
-# ✅ 再拷贝整体代码
-COPY backend /app/backend
+# 👉 打印 requirements，且用详细日志安装，便于在 Actions 里看到具体错误
+RUN python -V && pip -V && echo "----- requirements.txt -----" && cat /app/requirements.txt && \
+    python -m pip install --upgrade pip && \
+    pip install -vvv -r /app/requirements.txt
 
-# ✅ 对外暴露端口
-EXPOSE 8000
+# 再拷贝代码
+COPY backend /app/
 
-# ✅ 启动 FastAPI（按你项目命名修改）
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 5000
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000"]

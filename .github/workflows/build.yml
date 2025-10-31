@@ -7,15 +7,15 @@ on:
 
 permissions:
   contents: read
-  packages: write   # 关键：允许推包到 GHCR
+  packages: write   # 关键：允许推送到 GHCR
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to GHCR
+      - name: Login to GHCR (via GITHUB_TOKEN)
         uses: docker/login-action@v3
         with:
           registry: ghcr.io

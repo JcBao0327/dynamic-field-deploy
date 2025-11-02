@@ -3,7 +3,6 @@ FROM python:3.11-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 
-# 常见依赖的系统库（按需保留/删除）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential curl ca-certificates \
     libpq-dev default-libmysqlclient-dev \
